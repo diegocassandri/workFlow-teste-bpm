@@ -1,0 +1,147 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="ecm-frontend" version="1.1.0">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <base href="wfaprovacaocontratoresultado">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-select/0.20.0/select.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">    
+</head>
+
+<body ng-app="workflowApp">
+    <div ng-controller="workflowCtrl">
+        <!-- bodycontent -->
+        <div ui-view data-iframe-height>
+            <div class="portlet">
+                <div class="portlet-body">
+
+                    <span >Etapa: {{getStep()}}</span>
+                    <br/>
+                    <div class="error-container" ng-show="formHasErrors" aria-hidden="true">
+                        <div class="alert alert-danger">
+                            <p><strong>Ops!</strong> {{formErrorMessage}}</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 col-sm-3 col-xs-3 form-group">
+                            <label>
+                                <span>*Empresa</span>
+                            </label>
+                            <ui-select ng-model="empresaSelecionada"   on-select="onSelectEmpresa($item, $model)" ng-disabled="getStep()!='solicitacao'" ng-blur="filtroColaborador()">
+                                    <ui-select-match>
+                                        <span ng-bind="empresaSelecionada.nomemp"></span>
+                                    </ui-select-match>
+                                    <ui-select-choices  repeat="emp in (listaEmpresas) | filter: $select.search track by emp.nomemp " refresh="filtroEmpresa($select.search)">                                    
+                                        <div ng-bind-html="emp.nomemp | highlight: $select.search"></div>
+                             </ui-select-choices>
+                                </ui-select> 
+                            <!--<select name="numemp" class="form-control" required  ng-disabled="getStep()!='solicitacao'"
+                                        ng-model="entity.numemp" ng-blur="atualizaFiltroColaborador()"
+                                        ng-options="numemp.numemp as (numemp.nomemp) for numemp in listaEmpresas "> -->
+                            </select>
+                                <!--<input class="form-control" ng-model="entity.numemp" type="text" ng-disabled="getStep()!='solicitacao'">-->
+                        </div>
+                        <div class="col-md-3 col-sm-3 col-xs-3 form-group">
+                            <label>
+                                <span>*Tipo de Colaborador</span>
+                            </label>
+                                <select name="tipcol" class="form-control" required  ng-disabled="getStep()!='solicitacao'"
+                                        ng-model="entity.tipcol" 
+                                        ng-options="tipcol.tipcol as (tipcol.nome) for tipcol in listaTipCol ">
+                                </select> 
+                                <!--<input class="form-control" ng-model="entity.tipcol" type="text" ng-disabled="getStep()!='solicitacao'">-->
+                           
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-6 form-group">
+                            <label>
+                                <span>*Colaborador</span>
+                            </label>
+                            <ui-select ng-model="colaboradorSelecionado" on-select="onSelectColaborador($item, $model)" ng-disabled="getStep()!='solicitacao'">
+                                <ui-select-match>
+                                    <span ng-bind="colaboradorSelecionado.nomFun"></span>
+                                </ui-select-match>
+                                <ui-select-choices repeat="col in (listaColaboradores) | filter: $select.search track by col.nomFun " refresh="filtroColaborador($select.search)">                                    
+                                    <div ng-bind-html="col.nomFun | highlight: $select.search"></div>
+                                </ui-select-choices>
+                            </ui-select> 
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-6 form-group">
+                            <label>
+                                <span>*Data da Alteração</span>
+                            </label>
+                            <input class="form-control" ng-model="entity.datalt2" type="text" ng-disabled="getStep()=='aprovacao'">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-6 form-group">
+                            <label>
+                                <span>*Cargo</span>
+                            </label>
+                            <input class="form-control" ng-model="entity.cargo" type="text" ng-disabled="getStep()=='aprovacao'" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-6 form-group">
+                            <label>
+                                <span>Motivo</span>
+                            </label>
+                            <textarea name="descricao" ng-model="entity.motivo" class="form-control" ng-disabled="getStep()=='aprovacao'"></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-6 form-group">
+                            <label>
+                                <span>*Aprovador</span>
+                            </label>
+                            <input class="form-control" ng-model="entity.aprovador" ng-disabled="true" type="text">
+                        </div>                        
+                    </div>  
+                    <div class="row" ng-if="getStep()=='aprovacao'">
+                        <div class="col-md-6 col-sm-6 col-xs-6 form-group">
+                            <label>
+                                <span>Ação</span>
+                            </label>
+                            <select class="form-control" ng-model="entity.validacao" >
+                                <option></option>
+                                <option value="SIM">Aprovar</option>
+                                <option value="NAO">Revisar</option>
+                            </select>
+                        </div>                        
+                    </div>              
+                    
+                </div>
+            </div>
+            <!-- /bodycontent -->
+        </div>
+    </div>
+
+    <!-- Imports JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.3/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ODataResources/1.0.25/odataresources.min.js"></script> 
+    
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-select/0.20.0/select.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.1/angular-sanitize.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.14/iframeResizer.contentWindow.min.js"></script>
+    <script type="text/javascript" src="https://cdn.senior.com.br/platform/1.7.1/js/workflow-cockpit.js"></script>    
+
+    <script type="text/javascript" src="js/g5service.js"></script>
+    <script type="text/javascript" src="js/odataservice.js"></script>
+
+    <script type="text/javascript" src="js/main.js"></script>
+
+<body
+
+</html>
